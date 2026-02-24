@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.vitatrix.backend.controller.StructuredEntryControllerTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.861 s -- in com.vitatrix.backend.controller.StructuredEntryControllerTest

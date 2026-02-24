@@ -3,12 +3,12 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: shiftpilot-postgres
+    container_name: vitatrix-postgres
     restart: always
     environment:
-      POSTGRES_DB: shiftpilot
-      POSTGRES_USER: shiftpilot
-      POSTGRES_PASSWORD: shiftpilot
+      POSTGRES_DB: vitatrix
+      POSTGRES_USER: vitatrix
+      POSTGRES_PASSWORD: vitatrix
     ports:
       - "5432:5432"
     volumes:
