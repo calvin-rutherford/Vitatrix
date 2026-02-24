@@ -1,6 +1,6 @@
 # Vitatrix
 
-ShiftPilot is a backend service for nursing charting and shift handoff summaries.
+Vitatrix is a backend service for nursing charting and shift handoff summaries.
 This repository contains the complete Sprint 2A codebase.
 
 ## Prerequisites
@@ -151,4 +151,5 @@ mvn test
 ## Migration Note
 This version fully replaces the Sprint 1 H2 database with PostgreSQL. Make sure to stop any previous instances and run `docker compose up` to initialize the fresh database.
 The `NursingNote` table now includes a `shift` column (DAY, EVENING, NIGHT). Existing data in `dev` may be incompatible if not dropped.
+
 
