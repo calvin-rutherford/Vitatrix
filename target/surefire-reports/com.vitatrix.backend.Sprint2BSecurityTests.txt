@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.vitatrix.backend.Sprint2BSecurityTests
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.89 s -- in com.vitatrix.backend.Sprint2BSecurityTests
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.79 s -- in com.vitatrix.backend.Sprint2BSecurityTests
