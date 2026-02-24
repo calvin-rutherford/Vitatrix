@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.shiftpilot.backend.controller.StructuredEntryControllerTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.936 s -- in com.shiftpilot.backend.controller.StructuredEntryControllerTest
