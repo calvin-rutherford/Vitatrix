@@ -1,489 +1,82 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# Vitatrix Sprint 2B
-
-Vitatrix is a backend service for nursing charting and shift handoff summaries.
-This repository contains the complete Sprint 2B codebase, building upon Sprint 2A with stateless JWT authentication, role-based authorization, and dynamic shift summaries.
-
-## What Sprint 2B Added/Changed
-- **JWT Authentication**: Replaced Basic Auth with stateless JWT tokens via `/api/auth/login`.
-- **Role-Based Authorization**: Methods and endpoints are now secured by `ADMIN` and `NURSE` roles.
-- **Auto-Attribution**: Notes are automatically attributed to the authenticated nurse creating them, rather than relying on client input.
-- **Dynamic Shift Summaries**: `/api/shift-summaries/generate` and `/api/shift-summaries/latest` now support dynamic filtering by `shift`, `patientId`, `nurseUsername`, `from`, and `to`. Roles restrict nurses to only query their own summaries.
-- **User Management**: Admins can now create and list users via `/api/admin/users`.
-- **Validation Cleanup**: Hardened DTO boundaries and validation rules.
-
-## Prerequisites
-
-- Java 17+
-- Docker & Docker Compose
-- Maven
-
-## Running the Application
-
-1. **Start PostgreSQL Database**
-   ```bash
-   docker compose up -d
-   ```
-
-2. **Environment Variables**
-   The application uses the `JWT_SECRET` and `JWT_EXP_SECONDS` environment variables. In the `dev` profile, these have defaults. For production, you must set them securely:
-   ```bash
-   export JWT_SECRET=yourSuperSecretKeyThatIsAtLeast256BitsLong
-   export JWT_EXP_SECONDS=3600
-   ```
-
-3. **Run the Spring Boot Application**
-   ```bash
-   mvn spring-boot:run -Dspring-boot.run.profiles=dev
-   ```
-
-4. **Access Swagger UI**
-   Open [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) to explore the API.
-   - To use secured endpoints via Swagger, first use `/api/auth/login` to get a token.
-   - Click the **"Authorize"** button at the top of Swagger.
-   - Enter `Bearer <token>` in the value field and authenticate.
-
-## Default Credentials (Dev Profile)
-
-| Role | Username | Password |
-|------|----------|----------|
-| ADMIN| admin    | admin123 |
-| NURSE| nurse1   | nurse123 |
-
-## Curl Examples
-
-### 1. Login (Get JWT Token)
-```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "admin123"}' | jq -r .token)
-echo $TOKEN
-```
-
-### 2. Create Patient (Admin Only)
-```bash
-curl -X POST http://localhost:8080/api/patients \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "Alice",
-    "lastName": "Johnson",
-    "roomNumber": "103",
-    "admissionDate": "2023-10-27",
-    "diagnosis": "Flu"
-  }'
-```
-
-### 3. List Patients (Admin/Nurse)
-```bash
-curl -X GET http://localhost:8080/api/patients \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-### 4. Create a Note (Nurse/Admin)
-*Note: The system automatically assigns the creating user to the `nurseUsername` field.*
-```bash
-# Obtain a nurse token first
-NURSE_TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login -d '{"username": "nurse1", "password": "nurse123"}' -H "Content-Type: application/json" | jq -r .token)
-
-curl -X POST http://localhost:8080/api/notes \
-  -H "Authorization: Bearer $NURSE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "patientId": 1,
-    "content": "Patient reports pain at 6/10. Administered meds. Shift: DAY",
-    "shift": "DAY"
-  }'
-```
-
-### 5. Patch Structured Entry
-```bash
-# Use entry ID returned from note creation or found via GET endpoints
-curl -X PATCH http://localhost:8080/api/structured-entries/1 \
-  -H "Authorization: Bearer $NURSE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "painLevel": 4,
-    "behavior": "Calm"
-  }'
-```
-
-### 6. Verify Structured Entry
-```bash
-curl -X POST http://localhost:8080/api/structured-entries/1/verify \
-  -H "Authorization: Bearer $NURSE_TOKEN"
-```
-
-### 7. Generate Shift Summary with Filters
-```bash
-curl -X POST "http://localhost:8080/api/shift-summaries/generate?shift=DAY&nurseUsername=nurse1" \
-  -H "Authorization: Bearer $NURSE_TOKEN"
-```
-
-### 8. Get Latest Shift Summary
-```bash
-curl -X GET "http://localhost:8080/api/shift-summaries/latest?shift=DAY&nurseUsername=nurse1" \
-  -H "Authorization: Bearer $NURSE_TOKEN"
-```
-
-### 9. Create User (Admin Only)
-```bash
-curl -X POST http://localhost:8080/api/admin/users \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "nurse2",
-    "password": "password123",
-    "role": "NURSE",
-    "facilityName": "General Hospital"
-  }'
-```
-
-### 10. List Users (Admin Only)
-```bash
-curl -X GET http://localhost:8080/api/admin/users \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-## Running Tests
-```bash
-mvn test
-```
-
-## Smoke Test Checklist
-- [ ] **Infrastructure**: `docker compose up -d` starts PostgreSQL properly.
-- [ ] **Application**: `mvn spring-boot:run -Dspring-boot.run.profiles=dev` starts successfully without errors.
-- [ ] **Auth**: Swagger UI is accessible; login works for `admin` and `nurse1`; invalid passwords return HTTP 403/401.
-- [ ] **Permissions**: `nurse1` receives a 403 Forbidden when trying to create a patient or a user.
-- [ ] **Attribution**: Notes created by `nurse1` have `nurseUsername` automatically set to `nurse1`.
-- [ ] **Filtering**: Shift Summary generation respects the dynamic query filters (e.g. `shift`, `nurseUsername`).
-
-## Migration Note
-This version replaces Basic Auth with JWT. All database tables and columns are compatible with Sprint 2A, but ensure you migrate logic that passes `nurseUsername` from your clients, as that parameter is no longer accepted in `NoteRequest`.
-=======
-=======
-<<<<<<< HEAD
-# Vitatrix Sprint 2B
-
-Vitatrix is a backend service for nursing charting and shift handoff summaries.
-This repository contains the complete Sprint 2B codebase, building upon Sprint 2A with stateless JWT authentication, role-based authorization, and dynamic shift summaries.
-
-## What Sprint 2B Added/Changed
-- **JWT Authentication**: Replaced Basic Auth with stateless JWT tokens via `/api/auth/login`.
-- **Role-Based Authorization**: Methods and endpoints are now secured by `ADMIN` and `NURSE` roles.
-- **Auto-Attribution**: Notes are automatically attributed to the authenticated nurse creating them, rather than relying on client input.
-- **Dynamic Shift Summaries**: `/api/shift-summaries/generate` and `/api/shift-summaries/latest` now support dynamic filtering by `shift`, `patientId`, `nurseUsername`, `from`, and `to`. Roles restrict nurses to only query their own summaries.
-- **User Management**: Admins can now create and list users via `/api/admin/users`.
-- **Validation Cleanup**: Hardened DTO boundaries and validation rules.
-
-## Prerequisites
-
-- Java 17+
-- Docker & Docker Compose
-- Maven
-
-## Running the Application
-
-1. **Start PostgreSQL Database**
-   ```bash
-   docker compose up -d
-   ```
-
-2. **Environment Variables**
-   The application uses the `JWT_SECRET` and `JWT_EXP_SECONDS` environment variables. In the `dev` profile, these have defaults. For production, you must set them securely:
-   ```bash
-   export JWT_SECRET=yourSuperSecretKeyThatIsAtLeast256BitsLong
-   export JWT_EXP_SECONDS=3600
-   ```
-
-3. **Run the Spring Boot Application**
-   ```bash
-   mvn spring-boot:run -Dspring-boot.run.profiles=dev
-   ```
-
-4. **Access Swagger UI**
-   Open [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) to explore the API.
-   - To use secured endpoints via Swagger, first use `/api/auth/login` to get a token.
-   - Click the **"Authorize"** button at the top of Swagger.
-   - Enter `Bearer <token>` in the value field and authenticate.
-
-## Default Credentials (Dev Profile)
-
-| Role | Username | Password |
-|------|----------|----------|
-| ADMIN| admin    | admin123 |
-| NURSE| nurse1   | nurse123 |
-
-## Curl Examples
-
-### 1. Login (Get JWT Token)
-```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "admin123"}' | jq -r .token)
-echo $TOKEN
-```
-
-### 2. Create Patient (Admin Only)
-```bash
-curl -X POST http://localhost:8080/api/patients \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "Alice",
-    "lastName": "Johnson",
-    "roomNumber": "103",
-    "admissionDate": "2023-10-27",
-    "diagnosis": "Flu"
-  }'
-```
-
-### 3. List Patients (Admin/Nurse)
-```bash
-curl -X GET http://localhost:8080/api/patients \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-### 4. Create a Note (Nurse/Admin)
-*Note: The system automatically assigns the creating user to the `nurseUsername` field.*
-```bash
-# Obtain a nurse token first
-NURSE_TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login -d '{"username": "nurse1", "password": "nurse123"}' -H "Content-Type: application/json" | jq -r .token)
-
-curl -X POST http://localhost:8080/api/notes \
-  -H "Authorization: Bearer $NURSE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "patientId": 1,
-    "content": "Patient reports pain at 6/10. Administered meds. Shift: DAY",
-    "shift": "DAY"
-  }'
-```
-
-### 5. Patch Structured Entry
-```bash
-# Use entry ID returned from note creation or found via GET endpoints
-curl -X PATCH http://localhost:8080/api/structured-entries/1 \
-  -H "Authorization: Bearer $NURSE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "painLevel": 4,
-    "behavior": "Calm"
-  }'
-```
-
-### 6. Verify Structured Entry
-```bash
-curl -X POST http://localhost:8080/api/structured-entries/1/verify \
-  -H "Authorization: Bearer $NURSE_TOKEN"
-```
-
-### 7. Generate Shift Summary with Filters
-```bash
-curl -X POST "http://localhost:8080/api/shift-summaries/generate?shift=DAY&nurseUsername=nurse1" \
-  -H "Authorization: Bearer $NURSE_TOKEN"
-```
-
-### 8. Get Latest Shift Summary
-```bash
-curl -X GET "http://localhost:8080/api/shift-summaries/latest?shift=DAY&nurseUsername=nurse1" \
-  -H "Authorization: Bearer $NURSE_TOKEN"
-```
-
-### 9. Create User (Admin Only)
-```bash
-curl -X POST http://localhost:8080/api/admin/users \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "nurse2",
-    "password": "password123",
-    "role": "NURSE",
-    "facilityName": "General Hospital"
-  }'
-```
-
-### 10. List Users (Admin Only)
-```bash
-curl -X GET http://localhost:8080/api/admin/users \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-## Running Tests
-```bash
-mvn test
-```
-
-## Smoke Test Checklist
-- [ ] **Infrastructure**: `docker compose up -d` starts PostgreSQL properly.
-- [ ] **Application**: `mvn spring-boot:run -Dspring-boot.run.profiles=dev` starts successfully without errors.
-- [ ] **Auth**: Swagger UI is accessible; login works for `admin` and `nurse1`; invalid passwords return HTTP 403/401.
-- [ ] **Permissions**: `nurse1` receives a 403 Forbidden when trying to create a patient or a user.
-- [ ] **Attribution**: Notes created by `nurse1` have `nurseUsername` automatically set to `nurse1`.
-- [ ] **Filtering**: Shift Summary generation respects the dynamic query filters (e.g. `shift`, `nurseUsername`).
-
-## Migration Note
-This version replaces Basic Auth with JWT. All database tables and columns are compatible with Sprint 2A, but ensure you migrate logic that passes `nurseUsername` from your clients, as that parameter is no longer accepted in `NoteRequest`.
-=======
->>>>>>> 047a4de5e16afc586e4a978c508c757dc7385079
 # Vitatrix
 
-Vitatrix is a backend service for nursing charting and shift handoff summaries.
-This repository contains the complete Sprint 2A codebase.
+A Spring Boot backend prototype for nursing notes and shift handoffs. This is a
+local portfolio demo with synthetic patients and notes seeded by `DataSeeder` in
+the `dev` profile. It has not been validated for clinical use; use synthetic data
+only.
 
-## Prerequisites
+## Implemented behavior
 
-- Java 17+
-- Docker & Docker Compose
-- Maven
+- Stateless JWT login at `POST /api/auth/login`; send the returned token as
+  `Authorization: Bearer <token>`. HTTP Basic authentication is not configured.
+- `ADMIN` and `NURSE` method authorization. Admins create patients and manage users;
+  both roles can read patients and create notes.
+- Note authorship comes from the authenticated account. Structured entries can be
+  read by patient, edited and verified.
+- Shift summaries support `shift`, `patientId`, `nurseUsername`, `from` and `to`
+  filters. Nurses are restricted to their own summaries; admins can query across
+  nurses. `DAY`, `EVENING` and `NIGHT` are the shift values.
 
-## file Tree
+The Java source is authoritative. Earlier Sprint 2A Basic Auth instructions have
+been superseded by the JWT implementation; this repository is not a claim of a
+completed healthcare product.
 
-```
-src/main/java/com/shiftpilot/backend
-├── ShiftPilotBackendApplication.java
-├── config
-│   ├── DataSeeder.java
-│   └── SecurityConfig.java
-├── controller
-│   ├── NursingNoteController.java
-│   ├── PatientController.java
-│   ├── ShiftSummaryController.java
-│   └── StructuredEntryController.java
-├── dto
-│   ├── NoteDto.java
-│   ├── PatientDto.java
-│   ├── ShiftSummaryDto.java
-│   └── StructuredEntryDto.java
-├── exception
-│   └── GlobalExceptionHandler.java
-├── model
-│   ├── NursingNote.java
-│   ├── Patient.java
-│   ├── ShiftSummary.java
-│   ├── StructuredEntry.java
-│   └── UserAccount.java
-├── repository
-│   ├── NursingNoteRepository.java
-│   ├── PatientRepository.java
-│   ├── ShiftSummaryRepository.java
-│   ├── StructuredEntryRepository.java
-│   └── UserAccountRepository.java
-├── security
-│   └── CustomUserDetailsService.java
-└── service
-    ├── NursingNoteService.java
-    ├── PatientService.java
-    ├── ShiftSummaryService.java
-    └── StructuredEntryService.java
+## Local setup
+
+Requires JDK 17, Maven, PostgreSQL 15 (or Docker with Compose), and optionally
+`curl` and `jq` for the example below. Dependencies and versions are in `pom.xml`;
+there is no Maven wrapper.
+
+```sh
+docker compose up -d postgres
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-## Running the Application
+The checked-in Compose service starts a local development database on port 5432
+using the demo settings in `src/main/resources/application-dev.properties`.
+It binds the host port on all interfaces by default; use an isolated development
+machine. The application defaults to the `dev` profile and port 8080. On an empty
+database, the dev seeder creates `admin` / `admin123` and `nurse1` / `nurse123`,
+plus two synthetic patients and sample notes. Existing data is not reset.
 
-1. **Start PostgreSQL Database**
-   ```bash
-   docker compose up -d
-   ```
-
-2. **Run the Spring Boot Application**
-   ```bash
-   mvn spring-boot:run -Dspring-boot.run.profiles=dev
-   ```
-
-3. **Access Swagger UI**
-   Open [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) to explore the API.
-
-## Default Credentials
-
-| Role | Username | Password |
-|------|----------|----------|
-| ADMIN| admin    | admin123 |
-| NURSE| nurse1   | nurse123 |
-
-## Curl Examples
-
-### 1. Create a Note (Nurse)
-```bash
-curl -X POST http://localhost:8080/api/notes \
-  -u nurse1:nurse123 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "patientId": 1,
-    "content": "Patient complains of severe headache. BP 150/95. Pain 8/10. Given Tylenol. Shift: NIGHT",
-    "shift": "NIGHT"
-  }'
+```sh
+TOKEN=$(curl --fail-with-body -sS http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"nurse1","password":"nurse123"}' | jq -er .token)
+curl --fail-with-body -sS http://localhost:8080/api/patients \
+  -H "Authorization: Bearer $TOKEN"
+curl --fail-with-body -sS -X POST \
+  'http://localhost:8080/api/shift-summaries/generate?shift=DAY' \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
-### 2. View Patients (Nurse)
-```bash
-curl -X GET http://localhost:8080/api/patients \
-  -u nurse1:nurse123
-```
+API descriptions are available at <http://localhost:8080/swagger-ui.html> and
+<http://localhost:8080/v3/api-docs>. These are development endpoints.
 
-### 3. Create Patient (Admin Only)
-```bash
-curl -X POST http://localhost:8080/api/patients \
-  -u admin:admin123 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "Alice",
-    "lastName": "Johnson",
-    "roomNumber": "103",
-    "admissionDate": "2023-10-27",
-    "diagnosis": "Flu"
-  }'
-```
+## Configuration and limits
 
-### 4. View Structured Entries for Patient (Nurse)
-```bash
-curl -X GET http://localhost:8080/api/structured-entries/patient/1 \
-  -u nurse1:nurse123
-```
+`JwtUtil` reads `jwt.secret` and `jwt.expiration` (seconds, default 3600).
+Spring environment overrides are `JWT_SECRET` and `JWT_EXPIRATION`, **not**
+`JWT_EXP_SECONDS`. The code contains a development fallback signing key that is
+also reachable outside the dev profile; setting the prod profile alone does not
+remove it. The prod datasource reads `DB_URL`, `DB_USERNAME` and `DB_PASSWORD`,
+with schema validation instead of automatic updates. These settings are not
+production approval or evidence of clinical, compliance or security readiness.
 
-### 5. Verify Structured Entry (Nurse)
-```bash
-# Replace {id} with actual entry ID from previous step
-curl -X POST http://localhost:8080/api/structured-entries/{id}/verify \
-  -u nurse1:nurse123
-```
+Structured extraction and summaries are rule-based in the service classes, not a
+validated clinical model. There is no clinical evaluation, deployment acceptance
+or measured accuracy claim in this repository.
 
-### 6. Update Structured Entry (Nurse)
-```bash
-# Replace {id} with actual entry ID
-curl -X PATCH http://localhost:8080/api/structured-entries/{id} \
-  -u nurse1:nurse123 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "painLevel": 7,
-    "bpSystolic": 145
-  }'
-```
+## Validation
 
-### 7. Generate Shift Summary (Nurse/Admin)
-```bash
-curl -X POST "http://localhost:8080/api/shift-summaries?shift=DAY" \
-  -u nurse1:nurse123
-```
-
-### 8. Get Latest Shift Summary
-```bash
-curl -X GET "http://localhost:8080/api/shift-summaries/latest?shift=DAY" \
-  -u nurse1:nurse123
-```
-
-## Running Tests
-```bash
+```sh
 mvn test
+mvn package
 ```
 
-## Migration Note
-This version fully replaces the Sprint 1 H2 database with PostgreSQL. Make sure to stop any previous instances and run `docker compose up` to initialize the fresh database.
-The `NursingNote` table now includes a `shift` column (DAY, EVENING, NIGHT). Existing data in `dev` may be incompatible if not dropped.
-
-
-<<<<<<< HEAD
->>>>>>> 342939fb29637d9b4d174651e7c9dd5996996f0c
-=======
->>>>>>> 342939fb29637d9b4d174651e7c9dd5996996f0c
->>>>>>> 047a4de5e16afc586e4a978c508c757dc7385079
+The tests use the H2 settings in `src/test/resources`, so they do not require the
+dev PostgreSQL service. `Sprint2BSecurityTests` exercises authentication and role
+boundaries; `StructuredEntryControllerTest` covers structured-entry APIs.
+Build output belongs in ignored `target/`, not source control. Test and package
+commands above are reproduction instructions, not a claim that they passed in
+every environment.
